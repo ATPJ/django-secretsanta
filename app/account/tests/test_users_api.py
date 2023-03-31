@@ -8,7 +8,6 @@ from rest_framework import status
 
 CREATE_USER_URL = reverse("account:create-user")
 TOKEN_URL = reverse("account:token")
-DETAIL_USER_URL = reverse("account:detail")
 
 
 def create_user(**params):
@@ -33,7 +32,7 @@ class PublicTest(TestCase):
 
         res = self.client.post(CREATE_USER_URL, data=data)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        user = get_user_model().objects.get(**data)
+        user = get_user_model().objects.get(**res.data)
         self.assertTrue(user.check_password(data.get('password')))
         self.assertTrue(user.username, data.get("username"))
 
