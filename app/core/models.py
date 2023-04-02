@@ -36,3 +36,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = "username"
+
+    def __str__(self) -> str:
+        return f"<User: {self.username}>"
+
+
+class Event(models.Model):
+    title = models.CharField(max_length=128, blank=False, null=False)
+    description = models.TextField(blank=True, null=True)
+    location = models.CharField(max_length=128, blank=False, null=False)
+    date_created = models.DateField(auto_now_add=True)
+    date_updated = models.DateField(auto_now=True)
+    attenders = models.ManyToManyField("User", related_name="events")
+
+    def __str__(self) -> str:
+        return f"<Event: '{self.title}' at '{self.location}'>"
