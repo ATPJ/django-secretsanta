@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
                                         PermissionsMixin
 
@@ -47,7 +48,8 @@ class Event(models.Model):
     location = models.CharField(max_length=128, blank=False, null=False)
     date_created = models.DateField(auto_now_add=True)
     date_updated = models.DateField(auto_now=True)
-    attenders = models.ManyToManyField("User", related_name="events")
+    moderator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="moderated_events")
+    attenders = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="events")
 
     def __str__(self) -> str:
         return f"<Event: '{self.title}' at '{self.location}'>"

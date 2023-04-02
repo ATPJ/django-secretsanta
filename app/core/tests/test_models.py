@@ -46,7 +46,8 @@ class TestModels(TestCase):
         data = {
             "title": "This is title",
             "description": "This is description",
-            "location": "At Cafe"
+            "location": "At Cafe",
+            "moderator": user1
         }
 
         event = Event.objects.create(**data)
@@ -58,5 +59,6 @@ class TestModels(TestCase):
         self.assertEqual(event.title, data.get("title"))
         self.assertEqual(event.description, data.get("description"))
         self.assertEqual(event.location, data.get("location"))
+        self.assertEqual(event.moderator, user1)
         self.assertIn(user1, attenders)
         self.assertIn(user2, attenders)
