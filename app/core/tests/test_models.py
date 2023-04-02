@@ -1,6 +1,12 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
+from core.models import Event
+
+
+def sample_user(**params):
+    return get_user_model().objects.create_user(**params)
+
 
 class TestModels(TestCase):
 
@@ -33,3 +39,24 @@ class TestModels(TestCase):
         user = get_user_model().objects.create_superuser(**info)
         self.assertTrue(user.is_staff)
         self.assertTrue(user.is_superuser)
+
+    def test_create_event(self):
+        user1 = sample_user(username="atpj", password="atpj1234")
+        user2 = sample_user(username="majid", password="majid1234")
+        data = {
+            "title": "This is title",
+            "description": "This is description",
+            "location": "At Cafe"
+        }
+
+        event = Event.objects.create(**data)
+        event.save()
+        event.attenders.add(user1, user2)
+
+        attenders = event.attenders.all()
+
+        self.assertEqual(event.title, data.get("title"))
+        self.assertEqual(event.description, data.get("description"))
+        self.assertEqual(event.location, data.get("location"))
+        self.assertIn(user1, attenders)
+        self.assertIn(user2, attenders)
