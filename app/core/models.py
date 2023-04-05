@@ -46,10 +46,13 @@ class Event(models.Model):
     title = models.CharField(max_length=128, blank=False, null=False)
     description = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=128, blank=False, null=False)
-    date_created = models.DateField(auto_now_add=True)
-    date_updated = models.DateField(auto_now=True)
-    moderator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="moderated_events")
-    attenders = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="events")
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
+    moderator = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                  on_delete=models.PROTECT,
+                                  related_name="moderated_events")
+    attenders = models.ManyToManyField(settings.AUTH_USER_MODEL,
+                                       related_name="events")
 
     def __str__(self) -> str:
         return f"<Event: '{self.title}' at '{self.location}'>"
