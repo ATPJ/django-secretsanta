@@ -75,7 +75,8 @@ class PrivateTests(TestCase):
 
         res = self.client.get(EVENT_URL)
 
-        events = Event.objects.filter(attenders=self.user1).order_by('-date_created')
+        events = Event.objects.filter(attenders=self.user1).order_by(
+                                                            '-date_created')
         serializer = serializers.EventSerializer(events, many=True)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)

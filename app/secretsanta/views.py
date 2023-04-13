@@ -4,7 +4,6 @@ from rest_framework import authentication, permissions
 from core.models import Event
 
 from secretsanta.serializers import EventSerializer
-# from secretsanta.permissions import IsEventAttender, IsEventModerator
 from secretsanta.permissions import EventPermission
 
 
