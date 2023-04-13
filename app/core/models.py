@@ -56,3 +56,15 @@ class Event(models.Model):
 
     def __str__(self) -> str:
         return f"<Event: '{self.title}' at '{self.location}'>"
+
+
+class Gift(models.Model):
+    giver = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              on_delete=models.PROTECT,
+                              related_name="gifts_to_buy")
+    reciver = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                on_delete=models.PROTECT,
+                                related_name="gifts_to_recive")
+    event = models.ForeignKey("Event",
+                              on_delete=models.CASCADE,
+                              related_name="gifts")
