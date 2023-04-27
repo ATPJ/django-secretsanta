@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from core.models import Event
+from core.models import Event, Gift
 
 from secretsanta import serializers
 
@@ -15,6 +15,17 @@ EVENT_URL = reverse("santa:event-list")
 
 def make_detail_event_url(event_id):
     return reverse("santa:event-detail", args=(event_id, ))
+
+
+def make_start_event_url(event_id):
+    return reverse("santa:event-start", args=(event_id, ))
+
+
+def sample_event_for_start(moderator, attender):
+    event = sample_event(moderator)
+    event.attenders.add(attender)
+    event.save()
+    return event
 
 
 def sample_event(moderator, **params) -> Event:
@@ -158,3 +169,27 @@ class PrivateTests(TestCase):
 
         self.assertIn(self.user1, attenders)
         self.assertIn(self.user2, attenders)
+
+    def test_start_event(self):
+        event = sample_event_for_start(self.user1, self.user2)
+        url = make_start_event_url(event.id)
+        res = self.client.post(url)
+        gifts = Gift.objects.filter(event=event)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(gifts), len(event.attenders.all()))
+
+    def test_start_event_403(self):
+        event = sample_event_for_start(self.user1, self.user2)
+        url = make_start_event_url(event.id)
+        self.client.logout()
+        self.client.force_authenticate(user=self.user2)
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_start_event_which_already_started(self):
+        event = sample_event_for_start(self.user1, self.user2)
+        url = make_start_event_url(event.id)
+        self.client.post(url)
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
