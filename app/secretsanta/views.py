@@ -1,3 +1,6 @@
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+
 from rest_framework import viewsets
 from rest_framework import authentication, permissions
 from rest_framework.decorators import action
@@ -57,3 +60,18 @@ class EventViewSet(viewsets.ModelViewSet):
         serialized_data = self.get_serializer(gift).data
 
         return Response(serialized_data)
+
+    @action(detail=True, methods=['POST'], url_path='add-attender',
+            url_name='add-attender',
+            permission_classes=[permissions.IsAuthenticated, IsEventModerator])
+    def add_attender(self, request, pk=None):
+        event = self.get_object()
+        if event.is_start:
+            return bad_request(request, ValidationError)
+
+        username = request.data.get('username')
+        new_attender = get_object_or_404(get_user_model(), username=username)
+        event.attenders.add(new_attender)
+        event.save()
+        serialize = self.get_serializer(event)
+        return Response(serialize.data)
