@@ -40,6 +40,23 @@ def sample_event(moderator, **params) -> Event:
     return event
 
 
+def make_get_event_gift_for_current_user_url(evnet_id: int):
+    return reverse("santa:event-gift", args=(evnet_id, ))
+
+
+def start_event_help_func(moderator: get_user_model(),
+                          attender: get_user_model(),
+                          client: APIClient) -> Event:
+    """
+        It is helper function for making an event and
+        start that event then return the event for testing.
+    """
+    event = sample_event_for_start(moderator, attender)
+    url = make_start_event_url(event.id)
+    client.post(url)
+    return event
+
+
 class PublicTests(TestCase):
 
     def setUp(self) -> None:
@@ -192,4 +209,27 @@ class PrivateTests(TestCase):
         url = make_start_event_url(event.id)
         self.client.post(url)
         resp = self.client.post(url)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_gift_for_started_event(self):
+        event = start_event_help_func(self.user1, self.user2, self.client)
+        url = make_get_event_gift_for_current_user_url(event.id)
+        resp = self.client.get(url)
+
+        info = {
+            "event": event,
+            "giver": self.user1,
+            "reciver": self.user2
+        }
+        gift = Gift.objects.get(**info)
+        serializer = serializers.GiftSerializer(gift, many=False)
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data, serializer.data)
+
+    def test_get_gift_when_event_is_not_started(self):
+        event = sample_event(self.user1)
+        url = make_get_event_gift_for_current_user_url(event.id)
+
+        resp = self.client.get(url)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
