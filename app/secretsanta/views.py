@@ -2,13 +2,14 @@ from rest_framework import viewsets
 from rest_framework import authentication, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import server_error, bad_request, \
-                                      ValidationError
+from rest_framework.exceptions import (server_error, bad_request,
+                                       ValidationError)
 
-from core.models import Event
+from core.models import Event, Gift
 
-from secretsanta.serializers import EventSerializer
-from secretsanta.permissions import EventPermission, IsEventModerator
+from secretsanta.serializers import EventSerializer, GiftSerializer
+from secretsanta.permissions import (EventPermission, IsEventModerator,
+                                     IsEventAttender)
 
 from secretsanta.utils import match_and_create_gift_for_attenders
 
@@ -40,7 +41,19 @@ class EventViewSet(viewsets.ModelViewSet):
             return bad_request(request, ValidationError)
         state = match_and_create_gift_for_attenders(event)
         if not state:
-            raise server_error(request)
+            return server_error(request)
         event.is_start = True
         event.save()
         return Response({"Message": "ok"}, 200)
+
+    @action(detail=True, methods=['GET'], url_path="gift",
+            url_name="gift", serializer_class=GiftSerializer,
+            permission_classes=[permissions.IsAuthenticated, IsEventAttender])
+    def get_gift(self, request, pk=None):
+        event = self.get_object()
+        if not event.is_start:
+            return bad_request(request, ValidationError())
+        gift = Gift.objects.get(event=event, giver=request.user)
+        serialized_data = self.get_serializer(gift).data
+
+        return Response(serialized_data)

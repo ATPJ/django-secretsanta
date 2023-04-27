@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 
-from core.models import Event
+from core.models import Event, Gift
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -20,3 +20,10 @@ class EventSerializer(serializers.ModelSerializer):
             'date_created', 'date_updated'
         )
         read_only_fields = ('id', 'moderator')
+
+
+class GiftSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Gift
+        fields = "__all__"
