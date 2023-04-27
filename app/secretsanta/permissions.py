@@ -4,7 +4,10 @@ from rest_framework.permissions import BasePermission
 class IsEventModerator(BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.moderator
+        if request.user == obj.moderator:
+            return True
+
+        return False
 
 
 class IsEventAttender(BasePermission):

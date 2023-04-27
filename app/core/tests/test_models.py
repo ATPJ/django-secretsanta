@@ -66,9 +66,10 @@ class TestModels(TestCase):
 
         attenders = event.attenders.all()
 
-        self.assertEqual(event.title, data.get("title"))
-        self.assertEqual(event.description, data.get("description"))
-        self.assertEqual(event.location, data.get("location"))
+        for key in data:
+            self.assertEqual(getattr(event, key), data[key])
+
+        self.assertFalse(event.is_start)
         self.assertEqual(event.moderator, user1)
         self.assertIn(user1, attenders)
         self.assertIn(user2, attenders)
