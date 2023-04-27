@@ -57,6 +57,10 @@ def start_event_help_func(moderator: get_user_model(),
     return event
 
 
+def make_add_attender_url(event_id):
+    return reverse("santa:event-add-attender", args=(event_id, ))
+
+
 class PublicTests(TestCase):
 
     def setUp(self) -> None:
@@ -233,3 +237,14 @@ class PrivateTests(TestCase):
 
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_add_new_user_as_attender_to_event(self):
+        event = sample_event(self.user1)
+        url = make_add_attender_url(event.id)
+        payload = {
+            "username": self.user2.username
+        }
+
+        resp = self.client.post(url, data=payload)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertIn(self.user2.id, resp.json().get('attenders'))
