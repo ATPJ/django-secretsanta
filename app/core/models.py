@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
                                         PermissionsMixin
 
@@ -36,3 +37,35 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = "username"
+
+    def __str__(self) -> str:
+        return f"<User: {self.username}>"
+
+
+class Event(models.Model):
+    title = models.CharField(max_length=128, blank=False, null=False)
+    description = models.TextField(blank=True, null=True)
+    location = models.CharField(max_length=128, blank=False, null=False)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
+    is_start = models.BooleanField(default=False)
+    moderator = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                  on_delete=models.PROTECT,
+                                  related_name="moderated_events")
+    attenders = models.ManyToManyField(settings.AUTH_USER_MODEL,
+                                       related_name="events")
+
+    def __str__(self) -> str:
+        return f"<Event: '{self.title}' at '{self.location}'>"
+
+
+class Gift(models.Model):
+    giver = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              on_delete=models.PROTECT,
+                              related_name="gifts_to_buy")
+    reciver = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                on_delete=models.PROTECT,
+                                related_name="gifts_to_recive")
+    event = models.ForeignKey("Event",
+                              on_delete=models.CASCADE,
+                              related_name="gifts")
