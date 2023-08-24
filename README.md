@@ -4,5 +4,5 @@
 
 - [X] Implement base functionality 
 - [ ] Update Readme
-- [ ] Implement Swagger UI for end-points
+- [X] Implement Swagger UI for end-points
 - [ ] Write documentation
