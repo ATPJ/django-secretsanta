@@ -3,8 +3,8 @@ MAINTAINER ATPJ
 
 ENV PYTHONUNBUFFERED 1
 
-COPY ./requirements.py /requirements.py
-RUN pip install -r /requirements.py
+COPY ./requirements.txt /requirements.txt
+RUN pip install -r /requirements.txt
 
 RUN mkdir /app
 WORKDIR /app
