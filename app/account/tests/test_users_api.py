@@ -7,7 +7,8 @@ from rest_framework import status
 
 
 CREATE_USER_URL = reverse("account:create-user")
-TOKEN_URL = reverse("account:token")
+ACCESS_TOKEN_URL = reverse("account:access-token")
+REFRESH_TOKEN_URL = reverse("account:refresh-token")
 
 
 def create_user(**params):
@@ -65,18 +66,19 @@ class PublicTest(TestCase):
         res = self.client.post(CREATE_USER_URL, data=data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_create_token_for_user(self):
+    def test_create_access_token_for_user(self):
         data = {
             "username": "atpj",
             "password": "atpjpass124124",
         }
         create_user(**data)
-        res = self.client.post(TOKEN_URL, data=data)
+        res = self.client.post(ACCESS_TOKEN_URL, data=data)
 
-        self.assertIn('token', res.data)
+        self.assertIn('access', res.data)
+        self.assertIn('refresh', res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-    def test_token_with_invalid_credentials(self):
+    def test_access_token_with_invalid_credentials(self):
         data = {
             "username": "atpj",
             "password": "atpjpass124124",
@@ -86,17 +88,63 @@ class PublicTest(TestCase):
             "username": "atpj",
             "password": "wrongpass"
         }
-        res = self.client.post(TOKEN_URL, data=wrong_data)
+        res = self.client.post(ACCESS_TOKEN_URL, data=wrong_data)
+        self.assertNotIn('access', res.data)
+        self.assertNotIn('refresh', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_token_with_not_existed_user(self):
+    def test_access_token_with_not_existed_user(self):
         data = {
             "username": "atpj",
             "password": "atpjpass124124",
         }
 
-        res = self.client.post(TOKEN_URL, data=data)
-        self.assertNotIn("token", res.data)
+        res = self.client.post(ACCESS_TOKEN_URL, data=data)
+        self.assertNotIn("access", res.data)
+        self.assertNotIn("refresh", res.data)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_refresh_with_valid_refresh_token(self):
+        data = {
+            "username": "atpj",
+            "password": "atpjpass124124",
+        }
+        create_user(**data)
+
+        refresh = self.client.post(ACCESS_TOKEN_URL, data=data
+                                   ).json().get('refresh')
+        payload = {
+            'refresh': refresh
+        }
+
+        res = self.client.post(REFRESH_TOKEN_URL, data=payload)
+        self.assertIn("access", res.data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_refresh_with_invalid_refresh_token(self):
+        data = {
+            "username": "atpj",
+            "password": "atpjpass124124",
+        }
+        create_user(**data)
+        self.client.post(ACCESS_TOKEN_URL, data=data)
+        payload = {
+            'refresh': "AAAAAAAAAA.AAAAAAAAAA.AAAAA"
+        }
+
+        res = self.client.post(REFRESH_TOKEN_URL, data=payload)
+        self.assertNotIn('access', res.data)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_refresh_without_refresh_token(self):
+        data = {
+            "username": "atpj",
+            "password": "atpjpass124124",
+        }
+        create_user(**data)
+        self.client.post(ACCESS_TOKEN_URL, data=data)
+
+        res = self.client.post(REFRESH_TOKEN_URL, data={})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_get_user_info_without_authentication(self):
