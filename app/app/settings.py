@@ -138,3 +138,9 @@ AUTH_USER_MODEL = 'core.User'
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Django SecretSanta',
+    'DESCRIPTION': 'A fun project for giving gifts',
+    'VERSION': '0.0.9-alpha',
+}
