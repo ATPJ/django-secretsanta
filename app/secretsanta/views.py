@@ -2,11 +2,13 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets
-from rest_framework import authentication, permissions
+from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import (server_error, bad_request,
                                        ValidationError)
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from core.models import Event, Gift
 
@@ -21,7 +23,7 @@ class EventViewSet(viewsets.ModelViewSet):
 
     serializer_class = EventSerializer
     queryset = Event.objects.all()
-    authentication_classes = [authentication.TokenAuthentication, ]
+    authentication_classes = [JWTAuthentication, ]
     permission_classes = [permissions.IsAuthenticated, EventPermission]
 
     def get_queryset(self):
