@@ -9,7 +9,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     attenders = serializers.PrimaryKeyRelatedField(
         many=True,
-        queryset=get_user_model().objects.all()
+        queryset=get_user_model().objects.all(),
     )
 
     class Meta:
@@ -27,3 +27,7 @@ class GiftSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gift
         fields = "__all__"
+
+
+class AddAttenderSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=255, allow_blank=False)

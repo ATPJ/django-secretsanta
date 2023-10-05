@@ -10,9 +10,12 @@ from rest_framework.exceptions import (server_error, bad_request,
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from drf_spectacular.utils import extend_schema
+
 from core.models import Event, Gift
 
-from secretsanta.serializers import EventSerializer, GiftSerializer
+from secretsanta.serializers import (EventSerializer, GiftSerializer,
+                                     AddAttenderSerializer)
 from secretsanta.permissions import (EventPermission, IsEventModerator,
                                      IsEventAttender)
 
@@ -63,6 +66,7 @@ class EventViewSet(viewsets.ModelViewSet):
 
         return Response(serialized_data)
 
+    @extend_schema(request=AddAttenderSerializer)
     @action(detail=True, methods=['POST'], url_path='add-attender',
             url_name='add-attender',
             permission_classes=[permissions.IsAuthenticated, IsEventModerator])
@@ -71,9 +75,13 @@ class EventViewSet(viewsets.ModelViewSet):
         if event.is_start:
             return bad_request(request, ValidationError)
 
-        username = request.data.get('username')
-        new_attender = get_object_or_404(get_user_model(), username=username)
-        event.attenders.add(new_attender)
-        event.save()
+        serializer = AddAttenderSerializer(data=request.data)
+        if serializer.is_valid():
+            new_attender = get_object_or_404(
+                get_user_model(),
+                username=serializer.validated_data.get('username')
+            )
+            event.attenders.add(new_attender)
+            event.save()
         serialize = self.get_serializer(event)
         return Response(serialize.data)
