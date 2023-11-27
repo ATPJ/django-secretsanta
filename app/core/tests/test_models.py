@@ -100,4 +100,4 @@ class TestModels(TestCase):
         mock_uuid.return_value = uuid
         file_path = models.event_image_file_path(None, 'example.jpg')
 
-        self.assertEqual(file_path, f'uploads/recipe/{uuid}.jpg')
+        self.assertEqual(file_path, f'uploads/event/{uuid}.jpg')
