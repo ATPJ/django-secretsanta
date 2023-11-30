@@ -17,9 +17,9 @@ class EventSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'title', 'description',
             'location', 'moderator', 'attenders',
-            'date_created', 'date_updated'
+            'date_created', 'date_updated', 'image'
         )
-        read_only_fields = ('id', 'moderator')
+        read_only_fields = ('id', 'moderator', 'image')
 
 
 class GiftSerializer(serializers.ModelSerializer):

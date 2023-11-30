@@ -99,6 +99,7 @@ class EventViewSet(viewsets.ModelViewSet):
         serialize = self.get_serializer(event)
         return Response(serialize.data)
 
+    @extend_schema(request=EventImageSerializer)
     @action(methods=['POST'], detail=True, url_path='upload-image')
     def upload_image(self, request, pk=None):
         """Upload an image to event"""
