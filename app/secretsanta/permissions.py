@@ -24,7 +24,8 @@ class EventPermission(BasePermission):
             attenders = obj.attenders.all()
             return True if request.user in attenders else False
 
-        if view.action in ['create', 'update', 'partial_update', 'destroy']:
+        if view.action in ['create', 'update', 'partial_update', 'destroy',
+                           'upload_image']:
             return request.user == obj.moderator
 
         return False

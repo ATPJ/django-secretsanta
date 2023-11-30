@@ -1,21 +1,23 @@
+from unittest.mock import patch
+
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
-from core.models import Event, Gift
+from core import models
 
 
 def sample_user(**params) -> get_user_model():
     return get_user_model().objects.create_user(**params)
 
 
-def sample_event(**params) -> Event:
+def sample_event(**params) -> models.Event:
     default = {
         "title": "This is title",
         "description": "This is description",
         "location": "At Cafe"
     }
     default.update(**params)
-    return Event.objects.create(**default)
+    return models.Event.objects.create(**default)
 
 
 class TestModels(TestCase):
@@ -60,7 +62,7 @@ class TestModels(TestCase):
             "moderator": user1
         }
 
-        event = Event.objects.create(**data)
+        event = models.Event.objects.create(**data)
         event.save()
         event.attenders.add(user1, user2)
 
@@ -84,9 +86,18 @@ class TestModels(TestCase):
             "event": event
         }
 
-        Gift.objects.create(**data)
-        gift = Gift.objects.get()
+        models.Gift.objects.create(**data)
+        gift = models.Gift.objects.get()
 
         self.assertEqual(gift.giver, user1)
         self.assertEqual(gift.reciver, user2)
         self.assertEqual(gift.event, event)
+
+    @patch('core.models.uuid.uuid4')
+    def test_event_image_file_name(self, mock_uuid):
+        """Test generating image path name."""
+        uuid = 'this-test'
+        mock_uuid.return_value = uuid
+        file_path = models.event_image_file_path(None, 'example.jpg')
+
+        self.assertEqual(file_path, f'uploads/event/{uuid}.jpg')

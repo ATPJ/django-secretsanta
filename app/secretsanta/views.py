@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -14,10 +14,17 @@ from drf_spectacular.utils import extend_schema
 
 from core.models import Event, Gift
 
-from secretsanta.serializers import (EventSerializer, GiftSerializer,
-                                     AddAttenderSerializer)
-from secretsanta.permissions import (EventPermission, IsEventModerator,
-                                     IsEventAttender)
+from secretsanta.serializers import (
+    EventSerializer,
+    GiftSerializer,
+    AddAttenderSerializer,
+    EventImageSerializer
+)
+from secretsanta.permissions import (
+    EventPermission,
+    IsEventModerator,
+    IsEventAttender
+)
 
 from secretsanta.utils import match_and_create_gift_for_attenders
 
@@ -33,6 +40,12 @@ class EventViewSet(viewsets.ModelViewSet):
         """ Return events which the authenticated user is in attenders list"""
         return self.queryset.filter(attenders=self.request.user)\
                             .order_by('-date_created')
+
+    def get_serializer_class(self):
+        if self.action == "upload_image":
+            return EventImageSerializer
+
+        return self.serializer_class
 
     def perform_create(self, serializer: serializer_class):
         current_user = self.request.user
@@ -85,3 +98,16 @@ class EventViewSet(viewsets.ModelViewSet):
             event.save()
         serialize = self.get_serializer(event)
         return Response(serialize.data)
+
+    @extend_schema(request=EventImageSerializer)
+    @action(methods=['POST'], detail=True, url_path='upload-image')
+    def upload_image(self, request, pk=None):
+        """Upload an image to event"""
+        event = self.get_object()
+        serializer = self.get_serializer(event, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

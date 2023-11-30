@@ -1,3 +1,8 @@
+import tempfile
+import os
+
+from PIL import Image
+
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -19,6 +24,10 @@ def make_detail_event_url(event_id):
 
 def make_start_event_url(event_id):
     return reverse("santa:event-start", args=(event_id, ))
+
+
+def make_upload_image_url(event_id):
+    return reverse("santa:event-upload-image", args=[event_id])
 
 
 def sample_event_for_start(moderator, attender):
@@ -248,3 +257,44 @@ class PrivateTests(TestCase):
         resp = self.client.post(url, data=payload)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertIn(self.user2.id, resp.json().get('attenders'))
+
+
+class ImageUploadTests(TestCase):
+    """Tests for the image upload API."""
+
+    def setUp(self) -> None:
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            username="ATPJ",
+            password="atpj123456",
+            name="Amirali"
+        )
+
+        self.client.force_authenticate(user=self.user)
+        self.event = sample_event(self.user)
+
+    def tearDown(self) -> None:
+        self.event.image.delete()
+
+    def test_upload_image(self):
+        """Test uploading an image to a event"""
+        url = make_upload_image_url(self.event.id)
+        with tempfile.NamedTemporaryFile(suffix='.jpg') as image_file:
+            img = Image.new("RGB", (10, 10))
+            img.save(image_file, format="JPEG")
+            image_file.seek(0)
+            payload = {'image': image_file}
+            res = self.client.post(url, payload, format='multipart')
+
+        self.event.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('image', res.data)
+        self.assertTrue(os.path.exists(self.event.image.path))
+
+    def test_upload_image_bad_request(self):
+        """Test uploading invalid image."""
+        url = make_upload_image_url(self.event.id)
+        payload = {'image': "INVALID IMAGE"}
+        res = self.client.post(url, payload, format='multipart')
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

@@ -1,7 +1,18 @@
+import uuid
+import os
+
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
                                         PermissionsMixin
+
+
+def event_image_file_path(instance, filename):
+    "Generate file path for event image."
+    ext = os.path.splitext(filename)[1]
+    filename = f'{uuid.uuid4()}{ext}'
+
+    return os.path.join('uploads', 'event', filename)
 
 
 class UserManager(BaseUserManager):
@@ -54,6 +65,7 @@ class Event(models.Model):
                                   related_name="moderated_events")
     attenders = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                        related_name="events")
+    image = models.ImageField(null=True, upload_to=event_image_file_path)
 
     def __str__(self) -> str:
         return f"<Event: '{self.title}' at '{self.location}'>"

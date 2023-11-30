@@ -17,9 +17,9 @@ class EventSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'title', 'description',
             'location', 'moderator', 'attenders',
-            'date_created', 'date_updated'
+            'date_created', 'date_updated', 'image'
         )
-        read_only_fields = ('id', 'moderator')
+        read_only_fields = ('id', 'moderator', 'image')
 
 
 class GiftSerializer(serializers.ModelSerializer):
@@ -31,3 +31,13 @@ class GiftSerializer(serializers.ModelSerializer):
 
 class AddAttenderSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=255, allow_blank=False)
+
+
+class EventImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading images to recipes."""
+
+    class Meta:
+        model = Event
+        fields = ['id', 'image']
+        read_only_fiedls = ['id']
+        extra_kwargs = {'image': {'required': True}}

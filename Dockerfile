@@ -9,7 +9,11 @@ RUN pip install -r /requirements.txt
 RUN mkdir /app
 WORKDIR /app
 COPY ./app /app
+RUN adduser django-user && \
+    mkdir -p /vol/web/media && \
+    mkdir -p /vol/web/static && \
+    chown -R django-user:django-user /vol && \
+    chmod -R 755 /vol
 
-RUN adduser user
-USER user
+USER django-user
 
